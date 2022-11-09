@@ -4,30 +4,49 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.1.3/axios.min.js"></script>
     <title>AXIOS拦截器</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.1.3/axios.min.js"></script>
 </head>
 <body>
     <script>
         // 原理与Promise相关
         //设置请求拦截器
         axios.interceptors.request.use(config => {
-            console.log('请求拦截器成功 :>> ', 请求拦截器成功);
+            console.log('请求拦截器成功 1:>> ');
+            config.params = {a:101};
+            return config;
+            // throw "ERROR";
+        },error => {
+            console.log('请求拦截器失败 1:>> ');
+            return Promise.reject(error);
+        });
+
+        axios.interceptors.request.use(config => {
+            console.log('请求拦截器成功 2:>> ');
+            config.timeout = 2000;
             return config;
         },error => {
-            console.log('请求拦截器失败 :>> ', 请求拦截器失败);
+            console.log('请求拦截器失败 2:>> ');
             return Promise.reject(error);
         });
 
         //设置响应拦截器
         axios.interceptors.response.use(response => {
-            console.log('响应拦截器成功 :>> ', 响应拦截器成功);
-            return response;
+            console.log('响应拦截器成功 1:>> ');
+            //只返回相应体中的data
+            return response.data;
         },error => {
-            console.log('响应拦截器失败 :>> ', 响应拦截器失败);
+            console.log('响应拦截器失败 1:>> ');
             return Promise.reject(error);
         });
 
+        axios.interceptors.response.use(response => {
+            console.log('响应拦截器成功 2:>> ');
+            return response;
+        },error => {
+            console.log('响应拦截器失败 2:>> ');
+            return Promise.reject(error);
+        });
         //发送请求
         axios({
             method: 'GET',
@@ -35,7 +54,7 @@
         }).then((result) => {
             console.log('result :>> ', result);
         }).catch((err) => {
-            
+            console.log('err :>> ', err);
         });
     </script>
 </body>
