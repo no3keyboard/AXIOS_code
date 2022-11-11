@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIOS由来</title>
+</head>
+<body>
+    <script>
+        //构造函数
+        function Axios(config){
+            //初始化
+            this.defaults = config;//为了创建default的默认属性
+            this.intercepter = {
+                requset: {},
+                respone: {}
+            }
+        }
+
+        //添加与原型相关方法
+        Axios.prototype.requset = function(config){
+            console.log('发送AJAX请求 请求的类型为' + config.method);
+        }
+        Axios.prototype.get = function(config){
+            return this.requset({method: 'GET'});
+        }
+        Axios.prototype.post = function(config){
+            return this.requset({method: 'POST'});
+        }
+
+        //声明函数
+        function createInstacne(config){
+            //实例化一个对象
+            let context = new Axios(config);//可以context.get() context.post() 但是不能当函数用
+            //创建请求函数
+            let instance = Axios.prototype.requset.bind(context);//instance是一个函数了 可以instance({}) 但不能当对象用 不能instance.get这些
+            //将Axios.prototype对象中的方法添加到instance函数对象中
+            Object.keys(Axios.prototype).forEach(key => {
+                instance[key] = Axios.prototype[key].bind(context);//this.default this.interceptors
+            });
+            //为instance函数对象添加属性default与interceptors
+            Object.keys(context).forEach(key => {
+                instance[key] = context[key];
+            })
+            return instance;
+        }
+
+        let axios = createInstacne();
+
+        //发送请求 同时验证当对象和当函数使用
+        axios({method: 'GET'});
+        axios({method: 'POST'});
+        axios.get({});
+        axios.post({});
+    </script>
+</body>
+</html>
