@@ -5,11 +5,83 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>请求发送过程</title>
+    <!-- <script src="./node_modules/axios/dist/axios.js"></script> -->
 </head>
 <body>
     <script>
-
         //axios发送请求 源头在 Axios.prototype.request  bind
+        //1.声明构造函数
+        function Axios(config){
+            this.config = config;
+        }
+
+        Axios.prototype.request = function (config) {
+            //发送请求 
+            // 创建promise对象
+            let promise = Promise.resolve(config);
+            // 声明数组
+            let chains = [dispatchRequest,undefined];//占位
+            // 遍历数组 调用then方法指定回调
+            let result = promise.then(chains[0],chains[1]);
+            // 返回结果
+            return result;
+        }
+
+        //2.dispatchRequest 函数
+        function dispatchRequest(config){
+            // 调用适配器发送请求
+            return xhrAdapter(config).then(response => {
+                //对响应结果进行转换处理
+                // ...
+                // 这里直接返回
+                return response;
+            },error => {
+                console.log('error :>> ', error);
+                throw error;
+            })
+        }
+
+        //3.adapter适配器
+        function xhrAdapter(config){
+            return new Promise((resolve, reject) => {
+                // 发送AJAX请求
+                let xhr = new XMLHttpRequest();
+                // 初始化
+                xhr.open(config.method,config.url);
+                // 发送
+                xhr.send();
+                // 绑定事件
+                xhr.onreadystatechange = function(){
+                    if(xhr.readyState === 4){
+                        // 判断成功条件
+                        if(xhr.status >= 200 && xhr.status < 300){
+                            // 返回成功状态
+                            resolve({
+                                //配置对象
+                                config: config,
+                                //响应体
+                                data: xhr.response,
+                                //响应头
+                                headers: xhr.getAllResponseHeaders(),//字符串
+                                //xhr请求对象
+                                request: xhr,
+                                //响应码
+                                status: xhr.status,
+                                //响应状态字符串
+                                statusText: xhr.statusText
+                            });
+                        }else{
+                            // 失败状态
+                            reject(new Error('请求失败,状态码为: ' + xhr.status));
+                        }
+                    }
+                }
+            })
+        }
+
+        //4.创建axios函数
+        let axios = Axios.prototype.request.bind(null);
+
         axios({
             method:'GET',
             url: 'http://localhost:3000/posts',
